@@ -16,26 +16,26 @@ class SimpleNeuralNetwork:
         self.is_bias = True
 
         self.threshold_uni = random.random()
-        self.threshold_bi = random.uniform(-1.0, 1.0)
+        self.threshold_bi = random.uniform(-0.1, 0.1)
 
         self.threshold = self.threshold_uni
-        self.activate_function = self.activate_function_bi
+        self.activate_function = self.activate_function_uni
 
         self.learning_factor = 0.01
         self.is_error = 1
 
         self.epochs = 0
 
-        # self.train_inputs = np.array(
-        #     [[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0],
-        #      [0.00002, 0.001], [0.003, 1.00101], [1.0112, 0.00201], [1.0006, 1.00006]]
-        # )
-        # self.train_outputs = np.array([0, 0, 0, 1, 0, 0, 0, 1])
         self.train_inputs = np.array(
-            [[-1.0, -1.0], [-1.0, 1.0], [1.0, -1.0], [1.0, 1.0],
-             [-1.00002, -1.001], [-1.003, 1.00101], [1.0112, -1.00201], [1.0006, 1.00006]]
+            [[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0],
+             [0.00002, 0.001], [0.003, 1.00101], [1.0112, 0.00201], [1.0006, 1.00006]]
         )
-        self.train_outputs = np.array([-1, -1, -1, 1, -1, -1, -1, 1])
+        self.train_outputs = np.array([0, 0, 0, 1, 0, 0, 0, 1])
+        # self.train_inputs = np.array(
+        #     [[-1.0, -1.0], [-1.0, 1.0], [1.0, -1.0], [1.0, 1.0],
+        #      [-1.00002, -1.001], [-1.003, 1.00101], [1.0112, -1.00201], [1.0006, 1.00006]]
+        # )
+        # self.train_outputs = np.array([-1, -1, -1, 1, -1, -1, -1, 1])
 
         self.generate_weights()
 

@@ -6,7 +6,7 @@ class Adaline:
 
     def __init__(self):
         self.DEBUG = True
-        self.weight_range = [-1, 1]
+        self.weight_range = [-0.1, 0.1]
         self.weights = np.array(0)
 
         self.bias_weight = random.uniform(self.weight_range[0], self.weight_range[1])
@@ -15,7 +15,7 @@ class Adaline:
 
         self.threshold = random.random()
 
-        self.learning_factor = 0.001
+        self.learning_factor = 0.01
 
         self.epochs = 0
 
