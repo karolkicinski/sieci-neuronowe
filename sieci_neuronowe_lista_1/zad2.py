@@ -5,115 +5,109 @@ import random
 class Adaline:
 
     def __init__(self):
-        self.weights = np.array([[random.uniform(-1.0, 1.0) / 10, random.uniform(-1.0, 1.0) / 10]]).T
-        self.error_threshold = 0.4
-        self.zero_weight = random.uniform(-1.0, 1.0)
-        self.bias = 1
+        self.DEBUG = True
+        self.weight_range = [-1, 1]
+        self.weights = np.array(0)
 
-        self.learning_factor = 0.01
-        self.patterns = np.array([
-            ([-1, -1], -1),
-            ([-1, 1], -1),
-            ([1, -1], -1),
-            ([1, 1], 1),
-            ([-0.994, -1.01], -1),
-            ([-1.034, 0.976], -1),
-            ([1.012, -1.026], -1),
-            ([1.023, 0.9932], 1),
-            ([1.09, 1.020], 1),
-            ([0.999, 1.023], 1),
-        ])
+        self.bias_weight = random.uniform(self.weight_range[0], self.weight_range[1])
+        self.bias_value = 1.0
+        self.is_bias = True
 
-        self.validation = np.array([
-            ([-1, -1], -1),
-            ([-1, 1], -1),
-            ([1, -1], -1),
-            ([1, 1], 1),
-            ([-0.999, -0.99999], -1),
-            ([-1.000987, 1], -1),
-            ([1.00318, -1.00026], -1),
-            ([0.999932, 0.99765], 1),
-            ([1.0045, 1.0044], 1),
-            ([1, 1.0098], 1),
-        ]) # zmienic hiperparametry jesli nue ok
+        self.threshold = random.random()
 
-        # self.threshold_bi = random.uniform(0, 0.8)
-        self.threshold_bi = 0.6
-        self.iterations = 0
+        self.learning_factor = 0.001
 
-    def calculate_error(self, offset):
-        result = np.dot(self.patterns[offset][0], self.weights)
-        return self.patterns[offset][1] - result[0]
+        self.epochs = 0
 
-    def calculate_entire_error(self):
-        return self.calculate_entire_error_for_weights(self.weights)
+        self.error_threshold = 0.1
 
-    def calculate_entire_error_for_weights(self, weights):
-        sum = 0.0
-        vector_size = len(self.patterns)
+        self.train_inputs = np.array(
+            [[-1.0, -1.0], [-1.0, 1.0], [1.0, -1.0], [1.0, 1.0],
+             [-1.00002, -1.001], [-1.003, 1.00101], [1.0112, -1.00201], [1.0006, 1.00006]]
+        )
+        self.train_outputs = np.array([-1, -1, -1, 1, -1, -1, -1, 1])
 
-        for i in range(vector_size):
-            sum += (float(self.patterns[i][1]) - np.dot(self.patterns[i][0], weights)[0]) ** 2
+        self.generate_weights()
 
-        return sum / vector_size
+    def generate_weights(self):
+        self.weights = np.array([random.uniform(self.weight_range[0], self.weight_range[1]),
+                                 random.uniform(self.weight_range[0], self.weight_range[1])])
 
-    def update_weights(self, offset):
-        error = self.calculate_error(offset)
-        new_weights = np.random.random((2, 1))
-        weights_size = len(self.weights)
+    def activate_function(self, x):
+        if self.is_bias:
+            threshold = 0
+        else:
+            threshold = self.threshold
 
-        for i in range(weights_size + 1):
-            if i == weights_size:
-                self.zero_weight = self.zero_weight + self.learning_factor * error * self.bias
-            else:
-                number = 2 * self.learning_factor * error * self.patterns[offset][0][i]
-                new_weights[i] = self.weights[i] + number
-
-        return new_weights
-
-    def activate_function_bi(self, x, bias=False):
-        if bias and x > 0:
-            return 1
-        elif not bias and x[0] > self.threshold_bi:
+        if x > threshold:
             return 1
         else:
             return -1
 
+    def calculate_entire_error(self):
+        sum = 0.0
+        vector_size = len(self.train_inputs)
+
+        for i in range(vector_size):
+            propagation_result = self.propagation(self.train_inputs[i], bias=self.is_bias)
+            error = float(self.train_outputs[i]) - propagation_result
+            sum += error ** 2
+
+        return float(sum) / float(vector_size)
+
+    def update_weights(self, result, offset):
+        error = self.train_outputs[offset] - result
+        for i in range(len(self.weights)):
+            self.weights[i] += 2 * self.learning_factor * error * self.train_inputs[offset][i]
+        self.bias_weight += 2 * self.learning_factor * error * self.bias_value
+
+    def pick_index(self, used):
+        if len(used) == len(self.train_inputs):
+            return False, -1
+        index = random.randint(0, len(self.train_inputs) - 1)
+        while index in used:
+            return self.pick_index(used)
+        return True, index
+
     def train(self):
-        vector_size = len(self.patterns)
-        last_error = self.calculate_entire_error()
-        while True:
-            # caly czas zmieniac wagi !!!
-            new_weights = self.update_weights(self.draw_index(vector_size))
-            error = self.calculate_entire_error_for_weights(new_weights)
-            self.iterations += 1
-            if error < last_error:
-                self.weights = new_weights
-                last_error = error
-                if error < self.error_threshold and self.validate():
-                    break
-        print("\n====> End of training <====\n")
+        while self.calculate_entire_error() > self.error_threshold:
+            self.epochs += 1
+            used_indexes = []
+            result, index = self.pick_index(used_indexes)
 
-    def draw_index(self, vector_size):
-        return random.randint(0, vector_size-1)
+            if self.epochs >= 10000:
+                print("Epochs out of range 10000!")
+                break
 
-    def propagation(self, inputs):
-        # elements = inputs.copy()
-        # np.insert(inputs, 1, self.bias)
-        # array = np.array([[self.zero_weight]]).T
-        # return self.activate_function_bi(np.dot(elements, np.append(array, self.weights)), bias=True)
-        return self.activate_function_bi(np.dot(inputs, self.weights))
+            while result:
+                propagation_result = self.propagation(self.train_inputs[index], self.is_bias)
+                self.update_weights(propagation_result, index)
 
-    def check_stop_condition(self):
-        entire_error = self.calculate_entire_error()
-        return not (entire_error >= self.error_threshold)
+                used_indexes.append(index)
+                result, index = self.pick_index(used_indexes)
 
-    def validate(self):
-        result = 1
-        print("\n====> Validation <====\n")
-        for element in self.validation:
-            if self.propagation(element[0]) != element[1]:
-                print("NOT OK...")
-                return False
-        print("OK!")
-        return True
+            if self.DEBUG:
+                print(f"Error: {self.calculate_entire_error()}")
+
+        if self.DEBUG:
+            print("end of training")
+            print(f"epochs: {self.epochs}")
+
+    def propagation(self, inputs, bias=False):
+        if bias:
+            w = np.insert(self.weights, 0, self.bias_weight)
+            x = np.insert(inputs, 0, self.bias_value)
+        else:
+            w = self.weights
+            x = inputs
+        return self.activate_function(np.dot(x, w))
+
+    def print_result(self):
+        print("---------------------------------------------------")
+        print(f"Weights: {self.weights}")
+        print(f"Bias weight: {self.bias_weight}")
+        print(f"Is bias mode: {self.is_bias}")
+        print(f"Epochs: {self.epochs}")
+        print(f"Error threshold: {self.error_threshold}")
+        print(f"Actual entire error: {self.calculate_entire_error()}")
+        print("---------------------------------------------------")
