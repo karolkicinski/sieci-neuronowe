@@ -49,7 +49,7 @@ class Adaline:
         vector_size = len(self.train_inputs)
 
         for i in range(vector_size):
-            propagation_result = self.propagation(self.train_inputs[i], bias=self.is_bias)
+            propagation_result = self.propagation(self.train_inputs[i], bias=self.is_bias, activate=False)
             error = float(self.train_outputs[i]) - propagation_result
             sum += error ** 2
 
@@ -80,7 +80,7 @@ class Adaline:
                 break
 
             while result:
-                propagation_result = self.propagation(self.train_inputs[index], self.is_bias)
+                propagation_result = self.propagation(self.train_inputs[index], self.is_bias, activate=False)
                 self.update_weights(propagation_result, index)
 
                 used_indexes.append(index)
@@ -93,14 +93,17 @@ class Adaline:
             print("end of training")
             print(f"epochs: {self.epochs}")
 
-    def propagation(self, inputs, bias=False):
+    def propagation(self, inputs, bias=False, activate=True):
         if bias:
             w = np.insert(self.weights, 0, self.bias_weight)
             x = np.insert(inputs, 0, self.bias_value)
         else:
             w = self.weights
             x = inputs
-        return self.activate_function(np.dot(x, w))
+        if activate:
+            return self.activate_function(np.dot(x, w))
+        else:
+            return np.dot(x, w)
 
     def print_result(self):
         print("---------------------------------------------------")

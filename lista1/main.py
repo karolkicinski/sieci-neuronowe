@@ -169,5 +169,5 @@ def lab2_report():
 
 if __name__ == '__main__':
     warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
-    # lab2_test()
-    lab2_report()
+    lab2_test()
+    # lab2_report()
