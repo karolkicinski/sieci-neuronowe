@@ -39,7 +39,9 @@ def badania():
     results_ep = []
     results_acc = []
 
-    for i in range(2):
+    replies = 10
+
+    for i in range(replies):
         network = NeuralNetwork()
         network.generate_layers()
         epoch, acc = network.train(x_train, x_val, y_train, y_val)
